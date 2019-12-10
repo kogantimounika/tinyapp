@@ -51,12 +51,19 @@ app.get("/urls/new", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: "http://www.lighthouselabs.ca"  /* What goes here? */ };
+  let templateVars = { shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL] /* What goes here? */ };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   res.send(generateRandomString(6));         // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  longURL = urlDatabase[req.params.shortURL];
+  // const longURL = ...
+  res.redirect(longURL);
 });
 
