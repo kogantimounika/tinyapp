@@ -30,3 +30,8 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.get("/urls/:shortURL", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: "http://www.lighthouselabs.ca"  /* What goes here? */ };
+  res.render("urls_show", templateVars);
+});
+
