@@ -10,7 +10,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
+  "njh87y": "http://www.exam.com"
 };
 
 function generateRandomString(outputLength) {
@@ -56,14 +57,24 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send(generateRandomString(6));         // Respond with 'Ok' (we will replace this)
+  //console.log(req.body);  // Log the POST request body to the console
+  let newShortUrl = generateRandomString(6); 
+  res.redirect(`http://localhost:8080/urls/${newShortUrl}`);
+  urlDatabase[newShortUrl] = 'http://' + req.body.longURL;
+});
+
+//delete an url
+app.post("/urls/:shortURL/delete", (req, res) => {
+  //console.log('delete: ', req.params.shortURL)
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
 });
 
 app.get("/u/:shortURL", (req, res) => {
   longURL = urlDatabase[req.params.shortURL];
-  // const longURL = ...
   res.redirect(longURL);
 });
+
 
