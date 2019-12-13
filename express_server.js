@@ -10,15 +10,21 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-const urlDatabase = {
+/*const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
   "njh87y": "http://www.exam.com"
+};*/
+
+let urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+
 
 const users = { 
   "userRandomID": {
-    id: "userRandomID", 
+    id: "userRandomID",
     email: "user@example.com", 
     password: "purple-monkey-dinosaur"
   },
@@ -26,7 +32,12 @@ const users = {
     id: "user2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
-  }
+  },
+  "aJ48lW": {
+    id: "aJ48lW", 
+    email: "z@z", 
+    password: "z"
+  },
 }
 
 function generateRandomString(outputLength) {
@@ -45,20 +56,36 @@ function findUserByEmail(email) {
     console.log("email:", email)
    // console.log("users key:", users[key].email)
     if (users[key].email === email) {
-
       return users[key].id;
     } 
   }
-      return null;
-    }
+  return null;
+}
 
-app.get("/urls", (req, ren) => {
+function urlsForUser(id) {
+  let newData = {};
+  for (let shortURL in urlDatabase) {
+    console.log("uFF shortURL", shortURL);
+    console.log("uFF urlDatabase[shortURL]", urlDatabase[shortURL])
+    console.log("uFF id",id);
+    if(urlDatabase[shortURL].userID === id) {
+        newData[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return newData;
+}
+
+
+app.get("/urls", (req, res) => {
   //console.log(req.cookies.username);
+  const user_id = req.cookies["user_id"];
+  const outputDatabase = urlsForUser(user_id)
+  console.log(outputDatabase);
   let templateVars = {
-     urls: urlDatabase,
+     urls: outputDatabase,
      userObj: users[req.cookies["user_id"]]
   };
-  ren.render("urls_index", templateVars);
+  res.render("urls_index", templateVars);
 });
 
 app.get("/", (req, res) => {
@@ -77,31 +104,40 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    userObj: req.cookies["user_id"]
+    userObj: users[req.cookies["user_id"]]
  };
+
+ if(typeof templateVars.userObj !== undefined) {
   res.render("urls_new",templateVars);
+ } else {
+   res.redirect("/login")
+ }
 });
 
-
 app.get("/urls/:shortURL", (req, res) => {
+  //let user = urlsForUser(req.cookie["user_id"]);
+  //if(user) {
+
   let templateVars = { shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL], /* What goes here? */ 
-    userObj:req.cookies['user_id']};
+    userObj:users[req.cookies['user_id']]};
   res.render("urls_show", templateVars);
+  //}
+  //else {
+   // res.send("Error");
+  //}
 });
 
 app.get("/register", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    userObj: req.cookies["user_id"]
+    userObj: users[req.cookies["user_id"]]
  };
   res.render("urls_register",templateVars);
 });
-
 
 app.get("/login", (req, res) => {
   let templateVars = {
@@ -111,43 +147,59 @@ app.get("/login", (req, res) => {
   res.render("urls_login",templateVars);
 });
 
-
-
-
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   let newShortUrl = generateRandomString(6); 
-  res.redirect(`http://localhost:8080/urls/${newShortUrl}`);
-  urlDatabase[newShortUrl] = 'http://' + req.body.longURL;
+  urlDatabase[newShortUrl] = {
+    longURL : req.body.longURL, 
+    userID : req.cookies["user_id"]}
+    res.redirect("/urls");
+
 });
 
 //delete an url
 app.post("/urls/:shortURL/delete", (req, res) => {
   //console.log('delete: ', req.params.shortURL)
+
+  let user = urlsForUser(req.cookies["user_id"]);
+  if (user) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+  
 });
 
 // edit a tiny url from database ---->>>>>
 app.post("/urls/:shortURL/edit", (req, res) => {
-  let shortUrl = req.params.shortURL
-  console.log('Edit: ', req.params.shortURL);
-  res.redirect(`/urls/${shortUrl}`);
-})
+ let user = urlsForUser(req.cookies["user_id"]);
+ if(user) {
+ let shortUrl = req.params.shortURL
+ console.log('Edit: ', req.params.shortURL);
+ res.redirect(`/urls/${shortUrl}`);
+ }
+ else {
+  res.send("Error");
+ }
+});
 
 // update button on the tine url show page ----->>>>
 app.post("/urls/:shortURL/update", (req, res) => {
-  let longUrl = req.body.editURL
-  urlDatabase[req.params.shortURL] = longUrl;
+  console.log("test ",req.params.shortURL);
+  console.log("test 1",req.body.editURL);
+
+  let longUrl = req.body.editURL;
+  
+  urlDatabase[req.params.shortURL].longURL = longUrl;
+  
   res.redirect('/urls');
 });
 
-
 app.get("/u/:shortURL", (req, res) => {
-  longURL = urlDatabase[req.params.shortURL];
+  longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
-
 
 
 //app.post("/urls/signIn", (req, res) => {
@@ -163,43 +215,37 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-
   const email = req.body.email;
   const password = req.body.password;
   const id = generateRandomString(6);
   const findemail = findUserByEmail(email);
-
    if(email !== '' && password !== '' && !findemail) {
     let userObj = {id : id, email : email, password : password};
     users[id] = userObj;
-
     res.cookie("user_id",id);
     res.redirect('/urls');
-
    } else {
      res.send("Error: statuscode 400");
    }
 });
 
 app.post("/login", (req, res) => {
-   email = req.body.email;
-
+  email = req.body.email;
   password = req.body.password;
-   id = findUserByEmail(email);
-  console.log(email);
-  console.log(password);
-  console.log(id);
+  id = findUserByEmail(email);
+  //console.log(email);
+  //console.log(password);
+  //console.log(id);
   //console.log("user id", users[id].password);
   if (!id) {
     res.send("status code 403");
   } else if (users[id].password === password) {
-    
     res.cookie("user_id", id);
     res.redirect('/urls')
   } else {
     res.send("status code 403");
   }
-})
+});
 
 
 

@@ -28,14 +28,13 @@
         <% for(let url in urls) { %>
           <tr>
             <td><a href='#'><%= url %></a></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url].longURL %></td>
             <td><form method="POST" action="/urls/<%= url %>/edit">
               <input class = "btn btn-outline-primary" type = "submit" value = "edit">
             </form></td>
             <td><form method="POST" action="/urls/<%= url %>/delete">
               <input class = "btn btn-outline-danger" type = "submit" value = "Delete">
             </form></td>
-
           </tr>
         <% } %>
       </tbody>
