@@ -2,6 +2,7 @@ const express = require("express");
 var cookieParser = require('cookie-parser')
 const app = express();
 const PORT = 8080; // default port 8080
+const bcrypt = require('bcrypt');
 
 app.use(cookieParser())
 
@@ -216,7 +217,8 @@ app.post("/logout", (req, res) => {
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  let pass = req.body.password;
+  const password = bcrypt.hashSync(pass, 10);
   const id = generateRandomString(6);
   const findemail = findUserByEmail(email);
    if(email !== '' && password !== '' && !findemail) {
@@ -231,15 +233,16 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   email = req.body.email;
-  password = req.body.password;
+  password1 = req.body.password;
   id = findUserByEmail(email);
   //console.log(email);
   //console.log(password);
   //console.log(id);
   //console.log("user id", users[id].password);
+  console.log("pass", users[id].password)
   if (!id) {
     res.send("status code 403");
-  } else if (users[id].password === password) {
+  } else if (bcrypt.compareSync(password1 , users[id].password)) {
     res.cookie("user_id", id);
     res.redirect('/urls')
   } else {
