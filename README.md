@@ -4,9 +4,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-["This is the Main page"](https://github.com/kogantimounika/tinyapp/blob/master/docs/urls_page.png)
-["This is the Login page when the user logs in into the system"](https://github.com/kogantimounika/tinyapp/blob/master/docs/login_page.png)
-["This is the Register page"](https://github.com/kogantimounika/tinyapp/blob/master/docs/register_page.png)
+!["This is the Main page"](https://github.com/kogantimounika/tinyapp/blob/master/docs/urls_page.png)
+!["This is the Login page when the user logs in into the system"](https://github.com/kogantimounika/tinyapp/blob/master/docs/login_page.png)
+!["This is the Register page"](https://github.com/kogantimounika/tinyapp/blob/master/docs/register_page.png)
 
 ## Dependencies
 
