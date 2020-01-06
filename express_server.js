@@ -37,6 +37,7 @@ const users = {
   },
 };
 
+//To generate a random string
 const generateRandomString = function(outputLength) {
   let result = '';
   let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -57,6 +58,12 @@ const urlsForUser = function(id) {
 };
 
 app.get("/urls", (req, res) => {
+ const userId = req.session.user_id;
+  const user = users[userId];
+  if(!user) {
+   res.send("please login ")
+  }
+  if (req.session.user_id) {
   const user_id = req.session["user_id"];
   const outputDatabase = urlsForUser(user_id);
   let templateVars = {
@@ -64,33 +71,32 @@ app.get("/urls", (req, res) => {
     userObj: users[req.session["user_id"]]
   };
   res.render("urls_index", templateVars);
+} else {
+  res.redirect("/login")
+}
 });
 
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 app.get("/urls/new", (req, res) => {
+  const userId = req.session.user_id;
+  const user = users[userId];
   let templateVars = {
     urls: urlDatabase,
     userObj: users[req.session["user_id"]]
   };
-  if (typeof templateVars.userObj !== undefined) {
-    res.render("urls_new",templateVars);
+   if(user) {
+
+    return res.render("urls_new",templateVars);
   } else {
-    res.redirect("/login");
+    res.send("please login")
+    return res.redirect("/login");
   }
 });
 
@@ -115,6 +121,11 @@ app.get("/login", (req, res) => {
     userObj: users[req.session["user_id"]]
   };
   res.render("urls_login",templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL].longURL;
+  res.redirect(longURL);
 });
 
 app.post("/urls", (req, res) => {
@@ -154,16 +165,13 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect('/urls');
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
-});
-
+//logout from the page
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
+//register a user
 app.post("/register", (req, res) => {
   const email = req.body.email;
   let pass = req.body.password;
@@ -180,6 +188,7 @@ app.post("/register", (req, res) => {
   }
 });
 
+//login a user
 app.post("/login", (req, res) => {
   let email = req.body.email;
   let password1 = req.body.password;
@@ -192,6 +201,10 @@ app.post("/login", (req, res) => {
   } else {
     res.send("status code 403");
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 
