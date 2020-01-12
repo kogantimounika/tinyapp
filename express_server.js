@@ -3,7 +3,7 @@ let cookieSession = require('cookie-session');
 const app = express();
 const PORT = 8080;
 const bcrypt = require('bcrypt');
-const {getUserByEmail} = require('./helpers');
+const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
 const bodyParser = require("body-parser");
 const users = require('./sample');
 const urlDatabase = require('./sample');
@@ -19,25 +19,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 
 
-//To generate a random string
-const generateRandomString = function(outputLength) {
-  let result = '';
-  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < outputLength; i ++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-};
 
-const urlsForUser = function(id) {
-  let newData = {};
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      newData[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return newData;
-};
 
 app.get("/urls", (req, res) => {
  const userId = req.session.user_id;
