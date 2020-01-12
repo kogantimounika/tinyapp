@@ -17,29 +17,25 @@ app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-
-
-
-
 app.get("/urls", (req, res) => {
- const userId = req.session.user_id;
+  const userId = req.session.user_id;
   const user = users[userId];
 
-  if(!user) {
-   res.send("please login in urls ")
+  if (!user) {
+    res.send("please login in urls ");
   }
 
   if (req.session.user_id) {
-  const user_id = req.session.user_id;
-  const outputDatabase = urlsForUser(user_id);
-  let templateVars = {
-    urls: outputDatabase,
-    userObj: users[req.session["user_id"]]
-  };
-  res.render("urls_index", templateVars);
-} else {
-  res.redirect("/login")
-}
+    const user_id = req.session.user_id;
+    const outputDatabase = urlsForUser(user_id);
+    let templateVars = {
+      urls: outputDatabase,
+      userObj: users[req.session["user_id"]]
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/", (req, res) => {
@@ -57,10 +53,10 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
     userObj: users[req.session["user_id"]]
   };
-   if(user) {
+  if (user) {
     return res.render("urls_new",templateVars);
   } else {
-    res.send("please login in urls new")
+    res.send("please login in urls new");
     return res.redirect("/login");
   }
 });
@@ -68,21 +64,20 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
-  if (!user)
-  {
+  if (!user) {
     res.send("please login first");
   }
   if (userId === urlDatabase[req.params.shortURL].userID) {
-  let templateVars = { shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    userObj:users[req.session['user_id']]};
-  res.render("urls_show", templateVars);
-} else if (userId !== urlDatabase[req.params.shortURL].userID) {
-  res.send("This url does not belong to you");
-} else if (!userId) {
-  res.send("Please login first");
-}
-}); 
+    let templateVars = { shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      userObj:users[req.session['user_id']]};
+    res.render("urls_show", templateVars);
+  } else if (userId !== urlDatabase[req.params.shortURL].userID) {
+    res.send("This url does not belong to you");
+  } else if (!userId) {
+    res.send("Please login first");
+  }
+});
 
 
 
