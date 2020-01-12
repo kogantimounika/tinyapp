@@ -5,6 +5,9 @@ const PORT = 8080;
 const bcrypt = require('bcrypt');
 const {getUserByEmail} = require('./helpers');
 const bodyParser = require("body-parser");
+const users = require('./sample');
+const urlDatabase = require('./sample');
+
 app.use(cookieSession({
   name : 'session',
   keys : ["abcdhfg"]
@@ -14,28 +17,7 @@ app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-let urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
-};
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-  "aJ48lW": {
-    id: "aJ48lW",
-    email: "z@z",
-    password: "z"
-  },
-};
 
 //To generate a random string
 const generateRandomString = function(outputLength) {
@@ -60,11 +42,13 @@ const urlsForUser = function(id) {
 app.get("/urls", (req, res) => {
  const userId = req.session.user_id;
   const user = users[userId];
+
   if(!user) {
-   res.send("please login ")
+   res.send("please login in urls ")
   }
+
   if (req.session.user_id) {
-  const user_id = req.session["user_id"];
+  const user_id = req.session.user_id;
   const outputDatabase = urlsForUser(user_id);
   let templateVars = {
     urls: outputDatabase,
@@ -92,20 +76,33 @@ app.get("/urls/new", (req, res) => {
     userObj: users[req.session["user_id"]]
   };
    if(user) {
-
     return res.render("urls_new",templateVars);
   } else {
-    res.send("please login")
+    res.send("please login in urls new")
     return res.redirect("/login");
   }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const userId = req.session.user_id;
+  const user = users[userId];
+  if (!user)
+  {
+    res.send("please login first");
+  }
+  if (userId === urlDatabase[req.params.shortURL].userID) {
   let templateVars = { shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
     userObj:users[req.session['user_id']]};
   res.render("urls_show", templateVars);
-});
+} else if (userId !== urlDatabase[req.params.shortURL].userID) {
+  res.send("This url does not belong to you");
+} else if (!userId) {
+  res.send("Please login first");
+}
+}); 
+
+
 
 app.get("/register", (req, res) => {
   let templateVars = {
@@ -191,11 +188,11 @@ app.post("/register", (req, res) => {
 //login a user
 app.post("/login", (req, res) => {
   let email = req.body.email;
-  let password1 = req.body.password;
+  let password = req.body.password;
   let id = getUserByEmail(email, users);
   if (!id) {
     res.send("Please Register first to Login");
-  } else if ((users[id].email === email) && (bcrypt.compareSync(password1, users[id].password))) {
+  } else if ((users[id].email === email) && (bcrypt.compareSync(password, users[id].password))) {
     req.session.user_id = id;
     res.redirect('/urls');
   } else {
